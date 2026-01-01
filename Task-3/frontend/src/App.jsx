@@ -1,53 +1,41 @@
 import { useState } from "react";
-import { ethers } from "ethers";
-import abi from "./abi/DeFiLending.json";
-import { CONTRACT_ADDRESS } from "./config";
-
 import Navbar from "./components/Navbar";
-import LendBox from "./components/LendBox";
-import BorrowBox from "./components/BorrowBox";
-import HistoryBox from "./components/HistoryBox";
+import NetworkSelector from "./components/NetworkSelector";
+import Deposit from "./components/Deposit";
+import Borrow from "./components/Borrow";
+import Repay from "./components/Repay";
+import Withdraw from "./components/Withdraw";
+import History from "./components/History";
+import { connectWallet, disconnectWallet, executeTx } from "./components/Wallet";
+import "./App.css";
 
 export default function App() {
-  const [contract, setContract] = useState(null);
+  const [account, setAccount] = useState(null);
   const [provider, setProvider] = useState(null);
-  const [signer, setSigner] = useState(null);
+  const [network, setNetwork] = useState("local");
+  const [history, setHistory] = useState([]);
 
-  async function connect() {
-    if (!window.ethereum) {
-      alert("Please install MetaMask!");
-      return;
-    }
-    const prov = new ethers.BrowserProvider(window.ethereum);
-    const sign = await prov.getSigner();
-    const cont = new ethers.Contract(CONTRACT_ADDRESS, abi.abi, sign);
-
-    setProvider(prov);
-    setSigner(sign);
-    setContract(cont);
-    alert("Wallet connected!");
-  }
-
-  async function lend(val) {
-    if (!contract) return alert("Connect wallet first!");
-    const tx = await contract.lend({ value: ethers.parseEther(val) });
-    await tx.wait();
-    alert("Lend successful!");
-  }
-
-  async function borrow(val) {
-    if (!contract) return alert("Connect wallet first!");
-    const tx = await contract.borrow(ethers.parseEther(val));
-    await tx.wait();
-    alert("Borrow successful!");
-  }
+  const log = (type, amount, status, tx) =>
+    setHistory((h) => [{ type, amount, status, tx }, ...h]);
 
   return (
     <>
-      <Navbar connect={connect} />
-      <LendBox lend={lend} />
-      <BorrowBox borrow={borrow} />
-      <HistoryBox history={[]} />
+      <Navbar
+        account={account}
+        onConnect={() => connectWallet(setAccount, setProvider)}
+        onDisconnect={() => disconnectWallet(setAccount, setProvider)}
+      >
+        <NetworkSelector value={network} onChange={setNetwork} />
+      </Navbar>
+
+      <div className="dashboard">
+        <Deposit onSubmit={(a) => executeTx("Deposit", a, provider, network, log)} />
+        <Borrow onSubmit={(a) => executeTx("Borrow", a, provider, network, log)} />
+        <Repay onSubmit={(a) => executeTx("Repay", a, provider, network, log)} />
+        <Withdraw onSubmit={(a) => executeTx("Withdraw", a, provider, network, log)} />
+      </div>
+
+      <History history={history} />
     </>
   );
 }

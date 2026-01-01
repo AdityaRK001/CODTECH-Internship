@@ -1,10 +1,40 @@
-export default function Navbar({ connect, account }) {
+import { useState } from "react";
+
+export default function Navbar({ account, onConnect, onDisconnect, children }) {
+  const [show, setShow] = useState(false);
+
   return (
     <div className="navbar">
-      <h2>DeFi Lending & Borrowing</h2>
-      <button onClick={connect}>
-        {account ? account.slice(0, 6) + "..." : "Connect"}
-      </button>
+      <div className="nav-left">
+        <h1>LendFlow</h1>
+
+        <div className="subtext">
+          {account ? (
+            <>
+              {show ? account : "**************"}
+              <button className="eye-btn" onClick={() => setShow(!show)}>
+                👁
+              </button>
+            </>
+          ) : (
+            "DeFi Lending Dashboard"
+          )}
+        </div>
+      </div>
+
+      <div className="nav-right">
+        {children}
+
+        {account ? (
+          <button className="nav-btn gold" onClick={onDisconnect}>
+            Connected
+          </button>
+        ) : (
+          <button className="nav-btn silver" onClick={onConnect}>
+            Connect MetaMask
+          </button>
+        )}
+      </div>
     </div>
   );
 }
