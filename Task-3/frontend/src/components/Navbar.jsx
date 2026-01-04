@@ -11,7 +11,7 @@ export default function Navbar({ account, onConnect, onDisconnect, children }) {
         <div className="subtext">
           {account ? (
             <>
-              {show ? account : "**************"}
+              {show ? account : "* * * * * * * * * * * * * *"}
               <button className="eye-btn" onClick={() => setShow(!show)}>
                 👁
               </button>
